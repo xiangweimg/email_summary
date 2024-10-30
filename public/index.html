@@ -1,0 +1,116 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Summaries</title>
+</head>
+<body>
+  <h1>Email Summaries</h1>
+  <div id="summaries"></div>
+  <script src="script.js"></script>
+</body>
+</html> -->
+
+// public/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Summaries</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .summary-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .subject {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>Email Summaries</h1>
+    <button id="startButton" onclick="startSummarization()">Generate Summaries</button>
+    <div id="loading" class="loading" style="display: none;">
+        Generating summaries... This may take a few minutes.
+    </div>
+    <div id="summaries"></div>
+
+    <script>
+        async function startSummarization() {
+            const button = document.getElementById('startButton');
+            const loading = document.getElementById('loading');
+            const summariesDiv = document.getElementById('summaries');
+            
+            button.disabled = true;
+            loading.style.display = 'block';
+            summariesDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/start-summary', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    await loadSummaries();
+                } else {
+                    throw new Error(data.error || 'Failed to generate summaries');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error generating summaries: ' + error.message);
+            } finally {
+                button.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        async function loadSummaries() {
+            const summariesDiv = document.getElementById('summaries');
+            
+            try {
+                const response = await fetch('/api/summaries');
+                const summaries = await response.json();
+                
+                summariesDiv.innerHTML = summaries.map(summary => `
+                    <div class="summary-card">
+                        <div class="subject">${summary.subject}</div>
+                        <div>${summary.summary}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error loading summaries: ' + error.message);
+            }
+        }
+
+        // Load any existing summaries when the page loads
+        loadSummaries();
+    </script>
+</body>
+</html>
